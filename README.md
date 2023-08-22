@@ -19,7 +19,6 @@ Provide step-by-step instructions on how to set up your project, including how t
 
 1. Pre-Requisites: Ensure that you have the following set up:
    * AWS account with necessary permissions.
-   * Python 3.10 (for Lambda functions).
    * AWS CLI configured with appropriate credentials.
    * Git installed on your machine.
    * Visual Studio Code or another code editor.
