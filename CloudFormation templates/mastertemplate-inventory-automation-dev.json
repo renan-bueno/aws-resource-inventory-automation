@@ -1,32 +1,40 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Resources": {
-    "Parameters": {
-      "SWOEC2BucketArn": {
-        "Type": "String",
-        "Default": "arn:aws:s3:::your-ec2-bucket-name/*",
-        "Description": "S3 bucket ARN for EC2 Lambda execution role"
-      },
-      "SWORDSBucketArn": {
-        "Type": "String",
-        "Default": "arn:aws:s3:::your-rds-bucket-name/*",
-        "Description": "S3 bucket ARN for RDS Lambda execution role"
-      },
-      "SWOS3BucketArn": {
-        "Type": "String",
-        "Default": "arn:aws:s3:::your-s3-bucket-name/*",
-        "Description": "S3 bucket ARN for S3 Lambda execution role"
-      }
+  "Parameters": {
+    "LambdaS3Bucket": {
+      "Type": "String",
+      "Default": "swo-inventory-automation",
+      "Description": "S3 bucket for Lambda function code"
     },
-    "SWOSQSQueue": {
+
+    "EC2BucketArn": {
+      "Type": "String",
+      "Default": "arn:aws:s3:::your-ec2-bucket-name/*",
+      "Description": "S3 bucket ARN for EC2 Lambda execution role"
+    },
+
+    "RDSBucketArn": {
+      "Type": "String",
+      "Default": "arn:aws:s3:::your-rds-bucket-name/*",
+      "Description": "S3 bucket ARN for RDS Lambda execution role"
+    },
+
+    "S3BucketArn": {
+      "Type": "String",
+      "Default": "arn:aws:s3:::your-s3-bucket-name/*",
+      "Description": "S3 bucket ARN for S3 Lambda execution role"
+    }
+  },
+  "Resources": {
+    "SQSQueue": {
       "Type": "AWS::SQS::Queue",
       "Properties": {
-        "QueueName": "SWOSQSQueue",
+        "QueueName": "SQSQueue",
         "VisibilityTimeout": 30
       }
     },
 
-    "SWOEventBridgeSQSPolicy": {
+    "EventBridgeSQSPolicy": {
       "Type": "AWS::SQS::QueuePolicy",
       "Properties": {
         "PolicyDocument": {
@@ -38,34 +46,34 @@
                 "Service": "events.amazonaws.com"
               },
               "Action": "sqs:SendMessage",
-              "Resource": { "Fn::GetAtt": ["SWOSQSQueue", "Arn"] }
+              "Resource": { "Fn::GetAtt": ["SQSQueue", "Arn"] }
             }
           ]
         },
-        "Queues": [{ "Ref": "SWOSQSQueue" }]
+        "Queues": [{ "Ref": "SQSQueue" }]
       }
     },
 
-    "SWOEventBridgeSchedule": {
+    "EventBridgeSchedule": {
       "Type": "AWS::Events::Rule",
       "Properties": {
-        "Name": "SWOEventBridgeSchedule",
+        "Name": "EventBridgeSchedule",
         "Description": "Scheduled event to trigger SQS queue",
         "ScheduleExpression": "rate(1 minute)",
         "State": "ENABLED",
         "Targets": [
           {
-            "Arn": { "Fn::GetAtt": ["SWOSQSQueue", "Arn"] },
-            "Id": "SWOSQSQueue"
+            "Arn": { "Fn::GetAtt": ["SQSQueue", "Arn"] },
+            "Id": "SQSQueue"
           }
         ]
       }
     },
 
-    "SWOEC2LambdaExecutionRole": {
+    "EC2LambdaExecutionRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
-        "RoleName": "SWOEC2LambdaExecutionRole",
+        "RoleName": "EC2LambdaExecutionRole",
         "AssumeRolePolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
@@ -80,7 +88,7 @@
         },
         "Policies": [
           {
-            "PolicyName": "SWOEC2LambdaExecutionPolicy",
+            "PolicyName": "EC2LambdaExecutionPolicy",
             "PolicyDocument": {
               "Version": "2012-10-17",
               "Statement": [
@@ -98,7 +106,7 @@
                 {
                   "Effect": "Allow",
                   "Action": "s3:PutObject",
-                  "Resource": { "Ref": "SWOEC2BucketArn" }
+                  "Resource": { "Ref": "EC2BucketArn" }
                 }
               ]
             }
@@ -107,10 +115,10 @@
       }
     },
 
-    "SWORDSLambdaExecutionRole": {
+    "RDSLambdaExecutionRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
-        "RoleName": "SWORDSLambdaExecutionRole",
+        "RoleName": "RDSLambdaExecutionRole",
         "AssumeRolePolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
@@ -125,7 +133,7 @@
         },
         "Policies": [
           {
-            "PolicyName": "SWORDSLambdaExecutionPolicy",
+            "PolicyName": "RDSLambdaExecutionPolicy",
             "PolicyDocument": {
               "Version": "2012-10-17",
               "Statement": [
@@ -144,7 +152,7 @@
                 {
                   "Effect": "Allow",
                   "Action": "s3:PutObject",
-                  "Resource": { "Ref": "SWORDSBucketArn" }
+                  "Resource": { "Ref": "RDSBucketArn" }
                 }
               ]
             }
@@ -153,10 +161,10 @@
       }
     },
 
-    "SWOS3LambdaExecutionRole": {
+    "S3LambdaExecutionRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
-        "RoleName": "SWOS3LambdaExecutionRole",
+        "RoleName": "S3LambdaExecutionRole",
         "AssumeRolePolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
@@ -171,7 +179,7 @@
         },
         "Policies": [
           {
-            "PolicyName": "SWOS3LambdaExecutionPolicy",
+            "PolicyName": "S3LambdaExecutionPolicy",
             "PolicyDocument": {
               "Version": "2012-10-17",
               "Statement": [
@@ -195,7 +203,7 @@
                 {
                   "Effect": "Allow",
                   "Action": "s3:PutObject",
-                  "Resource": { "Ref": "SWOS3BucketArn" }
+                  "Resource": { "Ref": "S3BucketArn" }
                 },
                 {
                   "Effect": "Allow",
@@ -209,82 +217,82 @@
       }
     },
 
-    "SWOEC2LambdaFunction": {
+    "EC2LambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
           "S3Bucket": "swo-inventory-automation",
           "S3Key": "EC2-Lambda-Metadata-Extraction.zip"
         },
-        "FunctionName": "SWOEC2LambdaFunction",
+        "FunctionName": "EC2LambdaFunction",
         "Handler": "index.lambda_handler",
         "Role": {
-          "Fn::GetAtt": ["SWOEC2LambdaExecutionRole", "Arn"]
+          "Fn::GetAtt": ["EC2LambdaExecutionRole", "Arn"]
         },
         "Runtime": "python3.10",
         "Timeout": 30
       }
     },
 
-    "SWORDSLambdaFunction": {
+    "RDSLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
           "S3Bucket": "swo-inventory-automation",
           "S3Key": "RDS-Lambda-Metadata-Extraction.zip"
         },
-        "FunctionName": "SWORDSLambdaFunction",
+        "FunctionName": "RDSLambdaFunction",
         "Handler": "index.lambda_handler",
         "Role": {
-          "Fn::GetAtt": ["SWORDSLambdaExecutionRole", "Arn"]
+          "Fn::GetAtt": ["RDSLambdaExecutionRole", "Arn"]
         },
         "Runtime": "python3.10",
         "Timeout": 30
       }
     },
 
-    "SWOS3LambdaFunction": {
+    "S3LambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
           "S3Bucket": "swo-inventory-automation",
           "S3Key": "S3-Lambda-Metadata-Extraction.zip"
         },
-        "FunctionName": "SWOS3LambdaFunction",
+        "FunctionName": "S3LambdaFunction",
         "Handler": "index.lambda_handler",
         "Role": {
-          "Fn::GetAtt": ["SWOS3LambdaExecutionRole", "Arn"]
+          "Fn::GetAtt": ["S3LambdaExecutionRole", "Arn"]
         },
         "Runtime": "python3.10",
         "Timeout": 30
       }
     },
 
-    "SWOEC2LambdaEventSourceMapping": {
+    "EC2LambdaEventSourceMapping": {
       "Type": "AWS::Lambda::EventSourceMapping",
       "Properties": {
-        "EventSourceArn": { "Fn::GetAtt": ["SWOSQSQueue", "Arn"] },
-        "FunctionName": { "Ref": "SWOEC2LambdaFunction" },
+        "EventSourceArn": { "Fn::GetAtt": ["SQSQueue", "Arn"] },
+        "FunctionName": { "Ref": "EC2LambdaFunction" },
         "Enabled": true,
         "BatchSize": 5
       }
     },
 
-    "SWORDSLambdaEventSourceMapping": {
+    "RDSLambdaEventSourceMapping": {
       "Type": "AWS::Lambda::EventSourceMapping",
       "Properties": {
-        "EventSourceArn": { "Fn::GetAtt": ["SWOSQSQueue", "Arn"] },
-        "FunctionName": { "Ref": "SWORDSLambdaFunction" },
+        "EventSourceArn": { "Fn::GetAtt": ["SQSQueue", "Arn"] },
+        "FunctionName": { "Ref": "RDSLambdaFunction" },
         "Enabled": true,
         "BatchSize": 5
       }
     },
 
-    "SWOS3LambdaEventSourceMapping": {
+    "S3LambdaEventSourceMapping": {
       "Type": "AWS::Lambda::EventSourceMapping",
       "Properties": {
-        "EventSourceArn": { "Fn::GetAtt": ["SWOSQSQueue", "Arn"] },
-        "FunctionName": { "Ref": "SWOS3LambdaFunction" },
+        "EventSourceArn": { "Fn::GetAtt": ["SQSQueue", "Arn"] },
+        "FunctionName": { "Ref": "S3LambdaFunction" },
         "Enabled": true,
         "BatchSize": 5
       }
