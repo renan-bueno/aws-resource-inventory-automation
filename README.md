@@ -27,10 +27,9 @@ Provide step-by-step instructions on how to set up your project, including how t
      
      Example: ```aws s3api create-bucket --bucket centralized-bucket-name --region your-region```.
 
-     Note: Default region is us-east-1.
-
      **Note**:
      - If it is multiple accounts, apply the Cross-Account Bucket Policy. The bucket policy in json format is in S3BucketsPermission.txt
+     - Default region is us-east-1.
 2. Clone the Repository:
    * Open your terminal and run the following command to clone the repository:
   
