@@ -1,6 +1,23 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Resources": {
+    "Parameters": {
+      "SWOEC2BucketArn": {
+        "Type": "String",
+        "Default": "arn:aws:s3:::swo-inventory-ec2-dev/*",
+        "Description": "S3 bucket ARN for EC2 Lambda execution role"
+      },
+      "SWORDSBucketArn": {
+        "Type": "String",
+        "Default": "arn:aws:s3:::swo-inventory-rds-dev/*",
+        "Description": "S3 bucket ARN for RDS Lambda execution role"
+      },
+      "SWOS3BucketArn": {
+        "Type": "String",
+        "Default": "arn:aws:s3:::swo-inventory-s3-dev/*",
+        "Description": "S3 bucket ARN for S3 Lambda execution role"
+      }
+    },
     "SWOSQSQueue": {
       "Type": "AWS::SQS::Queue",
       "Properties": {
@@ -81,7 +98,7 @@
                 {
                   "Effect": "Allow",
                   "Action": "s3:PutObject",
-                  "Resource": "arn:aws:s3:::swo-inventory-ec2-dev/*"
+                  "Resource": { "Ref": "SWOEC2BucketArn" }
                 }
               ]
             }
@@ -127,7 +144,7 @@
                 {
                   "Effect": "Allow",
                   "Action": "s3:PutObject",
-                  "Resource": "arn:aws:s3:::swo-inventory-rds-dev/*"
+                  "Resource": { "Ref": "SWORDSBucketArn" }
                 }
               ]
             }
@@ -178,7 +195,7 @@
                 {
                   "Effect": "Allow",
                   "Action": "s3:PutObject",
-                  "Resource": "arn:aws:s3:::swo-inventory-s3-dev/*"
+                  "Resource": { "Ref": "SWOS3BucketArn" }
                 },
                 {
                   "Effect": "Allow",
