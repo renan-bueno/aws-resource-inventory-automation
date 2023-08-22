@@ -62,7 +62,7 @@ Provide step-by-step instructions on how to set up your project, including how t
 
 The project aims to provide a real-time, scalable, and fully automated inventory management solution. It caters to organizations that use multiple AWS resources and need an effective way to track, report, and analyze their usage. The solution's design focuses on ease of deployment and customization, allowing it to be adapted to various use cases.
 
-Whether it's monitoring resource utilization, compliance tracking, or strategic decision-making, the SWO Inventory Automation project serves as a robust tool that harnesses the power of AWS cloud technologies to simplify and enhance inventory management.
+Whether it's monitoring resource utilization, compliance tracking, or strategic decision-making, the Inventory Automation project serves as a robust tool that harnesses the power of AWS cloud technologies to simplify and enhance inventory management.
 
 ## Contact
 
