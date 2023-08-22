@@ -22,8 +22,9 @@ Provide step-by-step instructions on how to set up your project, including how t
    * AWS CLI configured with appropriate credentials.
    * Git installed on your machine.
    * Visual Studio Code or another code editor.
-2. Create three S3 Bucket for EC2, RDS and S3.
-   * Create three S3 bucket to store all the CSV files generated across different accounts. This bucket's name should be consistent in the Python code and CloudFormation templates.
+2. Create four S3 Bucket.
+   * Create three S3 bucket to store all the CSV files generated across different accounts for EC2, RDS and S3. This bucket's name should be consistent in the Python code and CloudFormation templates.
+   * Create a fourth bucket to upload the python zip files. Make sure to matched the buckets name on the cloudformation template. It will be parametirezed once the cloudformation template is submited.
      
      Example: ```aws s3api create-bucket --bucket centralized-bucket-name --region your-region```.
 
