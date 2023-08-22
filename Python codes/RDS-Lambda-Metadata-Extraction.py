@@ -25,7 +25,7 @@ def lambda_handler(event, context):
     
     data.seek(0)
     
-    s3_bucket_name = 'swo-inventory-rds-dev'
+    s3_bucket_name = 'your-rds-bucket-name'
     s3_key = f'{account_id}_rds_metadata_us_east_1.csv'
     
     s3_client.put_object(Bucket=s3_bucket_name, Key=s3_key, Body=data.getvalue())

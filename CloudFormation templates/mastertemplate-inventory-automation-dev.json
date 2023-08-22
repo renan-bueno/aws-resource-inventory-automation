@@ -4,17 +4,17 @@
     "Parameters": {
       "SWOEC2BucketArn": {
         "Type": "String",
-        "Default": "arn:aws:s3:::swo-inventory-ec2-dev/*",
+        "Default": "arn:aws:s3:::your-ec2-bucket-name/*",
         "Description": "S3 bucket ARN for EC2 Lambda execution role"
       },
       "SWORDSBucketArn": {
         "Type": "String",
-        "Default": "arn:aws:s3:::swo-inventory-rds-dev/*",
+        "Default": "arn:aws:s3:::your-rds-bucket-name/*",
         "Description": "S3 bucket ARN for RDS Lambda execution role"
       },
       "SWOS3BucketArn": {
         "Type": "String",
-        "Default": "arn:aws:s3:::swo-inventory-s3-dev/*",
+        "Default": "arn:aws:s3:::your-s3-bucket-name/*",
         "Description": "S3 bucket ARN for S3 Lambda execution role"
       }
     },
