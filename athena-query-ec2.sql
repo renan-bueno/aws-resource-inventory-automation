@@ -1,4 +1,4 @@
-CREATE EXTERNAL TABLE IF NOT EXISTS inventory.rds_inventory (
+CREATE EXTERNAL TABLE IF NOT EXISTS inventory.ec2_inventory (
   `AccountID` STRING,
   `InstanceName` STRING,
   `InstanceID` STRING,
