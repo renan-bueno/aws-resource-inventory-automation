@@ -24,7 +24,9 @@ Provide step-by-step instructions on how to set up your project, including how t
    * Visual Studio Code or another code editor.
 2. Create three S3 Bucket for EC2, RDS and S3.
    * Create three S3 bucket to store all the CSV files generated across different accounts. This bucket's name should be consistent in the Python code and CloudFormation templates.
+     
      Example: ```aws s3api create-bucket --bucket centralized-bucket-name --region your-region```.
+
      Note: Default region is us-east-1.
 
      **Note**:
