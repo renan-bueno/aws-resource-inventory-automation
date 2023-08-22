@@ -1,0 +1,276 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "SWOSQSQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "QueueName": "SWOSQSQueue",
+        "VisibilityTimeout": 30
+      }
+    },
+
+    "SWOEventBridgeSQSPolicy": {
+      "Type": "AWS::SQS::QueuePolicy",
+      "Properties": {
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com"
+              },
+              "Action": "sqs:SendMessage",
+              "Resource": { "Fn::GetAtt": ["SWOSQSQueue", "Arn"] }
+            }
+          ]
+        },
+        "Queues": [{ "Ref": "SWOSQSQueue" }]
+      }
+    },
+
+    "SWOEventBridgeSchedule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "Name": "SWOEventBridgeSchedule",
+        "Description": "Scheduled event to trigger SQS queue",
+        "ScheduleExpression": "rate(1 minute)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": { "Fn::GetAtt": ["SWOSQSQueue", "Arn"] },
+            "Id": "SWOSQSQueue"
+          }
+        ]
+      }
+    },
+
+    "SWOEC2LambdaExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "SWOEC2LambdaExecutionRole",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "SWOEC2LambdaExecutionPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ec2:DescribeInstances",
+                    "ec2:DescribeImages",
+                    "sqs:ReceiveMessage",
+                    "sqs:DeleteMessage",
+                    "sqs:GetQueueAttributes"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:PutObject",
+                  "Resource": "arn:aws:s3:::swo-inventory-ec2-dev/*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+
+    "SWORDSLambdaExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "SWORDSLambdaExecutionRole",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "SWORDSLambdaExecutionPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ec2:DescribeInstances",
+                    "ec2:DescribeImages",
+                    "rds:DescribeDBInstances",
+                    "sqs:ReceiveMessage",
+                    "sqs:DeleteMessage",
+                    "sqs:GetQueueAttributes"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:PutObject",
+                  "Resource": "arn:aws:s3:::swo-inventory-rds-dev/*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+
+    "SWOS3LambdaExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "SWOS3LambdaExecutionRole",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "SWOS3LambdaExecutionPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:ListBucket",
+                    "s3:GetBucketLocation",
+                    "s3:GetObjectAttributes",
+                    "s3:GetObject",
+                    "s3:GetLifecycleConfiguration",
+                    "s3:GetBucketPublicAccessBlock",
+                    "s3:GetAccountPublicAccessBlock",
+                    "s3:ListAllMyBuckets",
+                    "sqs:ReceiveMessage",
+                    "sqs:DeleteMessage",
+                    "sqs:GetQueueAttributes"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "s3:PutObject",
+                  "Resource": "arn:aws:s3:::swo-inventory-s3-dev/*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "sts:GetCallerIdentity",
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+
+    "SWOEC2LambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "swo-inventory-automation",
+          "S3Key": "EC2-Lambda-Metadata-Extraction.zip"
+        },
+        "FunctionName": "SWOEC2LambdaFunction",
+        "Handler": "index.lambda_handler",
+        "Role": {
+          "Fn::GetAtt": ["SWOEC2LambdaExecutionRole", "Arn"]
+        },
+        "Runtime": "python3.10",
+        "Timeout": 30
+      }
+    },
+
+    "SWORDSLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "swo-inventory-automation",
+          "S3Key": "RDS-Lambda-Metadata-Extraction.zip"
+        },
+        "FunctionName": "SWORDSLambdaFunction",
+        "Handler": "index.lambda_handler",
+        "Role": {
+          "Fn::GetAtt": ["SWORDSLambdaExecutionRole", "Arn"]
+        },
+        "Runtime": "python3.10",
+        "Timeout": 30
+      }
+    },
+
+    "SWOS3LambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "swo-inventory-automation",
+          "S3Key": "S3-Lambda-Metadata-Extraction.zip"
+        },
+        "FunctionName": "SWOS3LambdaFunction",
+        "Handler": "index.lambda_handler",
+        "Role": {
+          "Fn::GetAtt": ["SWOS3LambdaExecutionRole", "Arn"]
+        },
+        "Runtime": "python3.10",
+        "Timeout": 30
+      }
+    },
+
+    "SWOEC2LambdaEventSourceMapping": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "Properties": {
+        "EventSourceArn": { "Fn::GetAtt": ["SWOSQSQueue", "Arn"] },
+        "FunctionName": { "Ref": "SWOEC2LambdaFunction" },
+        "Enabled": true,
+        "BatchSize": 5
+      }
+    },
+
+    "SWORDSLambdaEventSourceMapping": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "Properties": {
+        "EventSourceArn": { "Fn::GetAtt": ["SWOSQSQueue", "Arn"] },
+        "FunctionName": { "Ref": "SWORDSLambdaFunction" },
+        "Enabled": true,
+        "BatchSize": 5
+      }
+    },
+
+    "SWOS3LambdaEventSourceMapping": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "Properties": {
+        "EventSourceArn": { "Fn::GetAtt": ["SWOSQSQueue", "Arn"] },
+        "FunctionName": { "Ref": "SWOS3LambdaFunction" },
+        "Enabled": true,
+        "BatchSize": 5
+      }
+    }
+  }
+}
